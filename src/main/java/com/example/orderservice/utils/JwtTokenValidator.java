@@ -5,7 +5,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -22,7 +21,6 @@ public class JwtTokenValidator {
         token = token.substring(7);
         Claims claims;
         try{
-           //claims=Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
            claims=Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
         }catch(ExpiredJwtException ex){
             throw ex;
