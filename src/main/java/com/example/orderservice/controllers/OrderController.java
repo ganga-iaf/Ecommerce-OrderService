@@ -55,7 +55,8 @@ public class OrderController {
     }
 
     @GetMapping("/paymentstatus/{session_id}")
-    public ResponseEntity<OrderStatusDto> getOrderStatus(@PathVariable String session_id){
+    public ResponseEntity<OrderStatusDto> getOrderStatus(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable String session_id) throws  TokenMissingException {
+        validateToken(token);
         OrderStatusDto orderStatusDto=orderService.getOrderStatus(session_id);
         return new ResponseEntity<>(orderStatusDto,HttpStatus.OK);
     }
