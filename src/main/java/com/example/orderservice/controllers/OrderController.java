@@ -1,8 +1,10 @@
 package com.example.orderservice.controllers;
 
 import com.example.orderservice.dtos.OrderDto;
+import com.example.orderservice.dtos.OrderStatusDto;
 import com.example.orderservice.exceptions.TokenMissingException;
 import com.example.orderservice.models.Order;
+import com.example.orderservice.models.OrderStatus;
 import com.example.orderservice.services.OrderService;
 import com.example.orderservice.utils.JwtTokenValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +40,11 @@ public class OrderController {
     }
 
     @PostMapping()
-    public ResponseEntity<OrderDto> createOrder(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody OrderDto orderDto) throws TokenMissingException {
+    public ResponseEntity<String> createOrder(@RequestHeader(HttpHeaders.AUTHORIZATION) String token, @RequestBody OrderDto orderDto) throws TokenMissingException {
         long userId = validateToken(token);
-        Order order=orderService.createOrder(userId,orderDto);
-        return new ResponseEntity<>(OrderDto.convertOrderDto(order), HttpStatus.CREATED);
+        String url=orderService.createOrder(userId,orderDto);
+        //return new ResponseEntity<>(OrderDto.convertOrderDto(order), HttpStatus.CREATED);
+        return new ResponseEntity<>(url, HttpStatus.CREATED);
     }
 
     @PutMapping("/{orderId}")
@@ -49,6 +52,12 @@ public class OrderController {
         long userId = validateToken(token);
         Order order=orderService.cancelOrder(userId,orderId);
         return new ResponseEntity<>(OrderDto.convertOrderDto(order), HttpStatus.OK);
+    }
+
+    @GetMapping("/paymentstatus/{session_id}")
+    public ResponseEntity<OrderStatusDto> getOrderStatus(@PathVariable String session_id){
+        OrderStatusDto orderStatusDto=orderService.getOrderStatus(session_id);
+        return new ResponseEntity<>(orderStatusDto,HttpStatus.OK);
     }
 
     private long validateToken(String token) throws TokenMissingException {

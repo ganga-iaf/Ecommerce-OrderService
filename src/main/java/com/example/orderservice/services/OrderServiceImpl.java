@@ -2,10 +2,14 @@ package com.example.orderservice.services;
 
 import com.example.orderservice.dtos.OrderDto;
 import com.example.orderservice.dtos.OrderItemDto;
+import com.example.orderservice.dtos.OrderStatusDto;
+import com.example.orderservice.dtos.PaymentServiceDtos.PaymentResponseDto;
+import com.example.orderservice.dtos.PaymentServiceDtos.PaymentStatus;
 import com.example.orderservice.models.Order;
 import com.example.orderservice.models.OrderItem;
 import com.example.orderservice.models.OrderStatus;
 import com.example.orderservice.repositories.OrderRepo;
+import com.example.orderservice.utils.PaymentServiceConnector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +22,9 @@ import java.util.Optional;
 public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderRepo orderRepo;
+
+    @Autowired
+    private PaymentServiceConnector paymentServiceConnector;
 
 
 
@@ -37,7 +44,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order createOrder(long userId,OrderDto orderDto) {
+    public String createOrder(long userId,OrderDto orderDto) {
         Order order = new Order();
         order.setOrderStatus(OrderStatus.Created);
         order.setUserId(userId);
@@ -56,7 +63,10 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setOrderItems(orderItems);
         order.setAmount(totalPrice);
-        return orderRepo.save(order);
+        orderRepo.save(order);
+
+        return paymentServiceConnector.processPayment(OrderDto.convertOrderDto(order));
+        //return orderRepo.save(order);
     }
 
     @Override
@@ -72,6 +82,26 @@ public class OrderServiceImpl implements OrderService {
             return cancelOrder;
         }
         throw new RuntimeException("");
+    }
+
+    @Override
+    public OrderStatusDto getOrderStatus(String session_id) {
+        PaymentResponseDto responseDto=paymentServiceConnector.getPaymentStatus(session_id);
+        Optional<Order> orderOptional=orderRepo.findById(responseDto.getOrderId());
+        if(orderOptional.isEmpty()){
+            throw new RuntimeException("Order Not Found");
+        }
+        Order order=orderOptional.get();
+        if(responseDto.getPaymentStatus().equals(PaymentStatus.Completed)){
+            order.setOrderStatus(OrderStatus.Confirmed);
+        }else if(responseDto.getPaymentStatus().equals(PaymentStatus.Failed)){
+            order.setOrderStatus(OrderStatus.PaymentFailed);
+        }
+        orderRepo.save(order);
+        OrderStatusDto orderStatusDto=new OrderStatusDto();
+        orderStatusDto.setOrderId(order.getId());
+        orderStatusDto.setOrderStatus(order.getOrderStatus());
+        return orderStatusDto;
     }
 
 }
