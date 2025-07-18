@@ -13,5 +13,4 @@ public class OrderItemDto {
     private String productNameSnapshot;
     private double unitPrice;
     private int quantity;
-    private Date orderDate;
 }

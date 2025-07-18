@@ -15,7 +15,7 @@ public class OrderItem extends BaseModel {
     private long productId;
     private String productNameSnapshot;
     private int quantity;
-    private double UnitPrice;
+    private double unitPrice;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     @JsonIgnore

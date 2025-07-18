@@ -50,7 +50,6 @@ public class OrderDto {
             orderItemDto.setQuantity(orderItem.getQuantity());
             orderItemDto.setUnitPrice(orderItem.getUnitPrice());
             orderItemDto.setProductNameSnapshot(orderItem.getProductNameSnapshot());
-            orderItemDto.setOrderDate(orderItem.getCreatedAt());
             orderItemDtos.add(orderItemDto);
         }
         orderDto.setOrderItemDtos(orderItemDtos);
